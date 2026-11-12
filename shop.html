@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop all objects — MARAYA</title>
+<meta name="description" content="The full MARAYA collection: hand-thrown ceramics, loom-woven textiles and hand-pleated lighting. Limited runs, shipped worldwide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23191712'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='18' fill='%23FBF8F3' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="shop">
+
+<main>
+  <section class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">The collection</p>
+      <h1 style="margin-top:14px">Every object we make.</h1>
+      <p>Made in small runs by six family workshops. Add what you like to your inquiry and we will come back with availability, freight and a landed price.</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="chips" id="chips"></div>
+      <select class="sortsel" id="sort" aria-label="Sort">
+        <option value="featured">Sort: Featured</option>
+        <option value="low">Price: low to high</option>
+        <option value="high">Price: high to low</option>
+        <option value="name">Name: A–Z</option>
+      </select>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p id="emptyNote" style="display:none;padding:60px 0;text-align:center;color:var(--muted)">Nothing in this category yet.</p>
+  </div>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="note-line reveal">
+        <b>A note on pricing.</b> Prices shown are in your selected currency and exclude freight and local duties, which depend on destination and are confirmed in your written quotation. We quote in USD by default and invoice in USD, AED or MYR.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var M = window.MARAYA, S = window.STORE;
+  var params = new URLSearchParams(location.search);
+  var activeCat = params.get('cat') || 'All';
+  var sortBy = params.get('sort') || 'featured';
+
+  var cats = ['All'];
+  S.products.forEach(function (p) { if (cats.indexOf(p.cat) < 0) cats.push(p.cat); });
+
+  function renderChips() {
+    M.$('#chips').innerHTML = cats.map(function (c) {
+      return '<button class="chip' + (c === activeCat ? ' on' : '') + '" data-cat="' + M.esc(c) + '">' + M.esc(c) + '</button>';
+    }).join('');
+    M.$$('#chips .chip').forEach(function (b) {
+      b.addEventListener('click', function () {
+        activeCat = b.getAttribute('data-cat');
+        renderChips(); renderGrid();
+      });
+    });
+  }
+
+  function renderGrid() {
+    var list = S.products.filter(function (p) { return activeCat === 'All' || p.cat === activeCat; });
+    if (sortBy === 'low') list.sort(function (a, b) { return a.price - b.price; });
+    if (sortBy === 'high') list.sort(function (a, b) { return b.price - a.price; });
+    if (sortBy === 'name') list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    M.$('#grid').innerHTML = list.map(M.cardHTML).join('');
+    M.$('#emptyNote').style.display = list.length ? 'none' : 'block';
+    M.paintPrices();
+    M.reveals();
+  }
+
+  M.$('#sort').value = sortBy;
+  M.$('#sort').addEventListener('change', function () { sortBy = this.value; renderGrid(); });
+  renderChips();
+  renderGrid();
+});
+</script>
+</body>
+</html>

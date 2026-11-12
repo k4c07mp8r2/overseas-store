@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — MARAYA</title>
+<meta name="description" content="Talk to the studio about an order, a wholesale run or an interior project. WhatsApp and email, replies within one working day.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23191712'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='18' fill='%23FBF8F3' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.cgrid{display:grid;grid-template-columns:1.15fr .85fr;gap:min(6vw,72px);align-items:start}
+.cside{position:sticky;top:104px}
+.cbox{border:1px solid var(--line);background:#fff;padding:26px}
+.cbox + .cbox{margin-top:14px}
+.cbox h3{font-size:18px}
+.cbox p{margin-top:10px;font-size:13.5px;line-height:1.7;color:var(--muted)}
+.cbox a.line{display:block;margin-top:12px;font-size:15px;border-bottom:1px solid var(--line-2);padding-bottom:6px;width:fit-content}
+.cbox a.line:hover{color:var(--clay);border-color:var(--clay)}
+@media(max-width:860px){.cgrid{grid-template-columns:1fr;gap:34px}.cside{position:static}}
+</style>
+</head>
+<body data-page="contact">
+
+<main>
+  <section class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Contact</p>
+      <h1 style="margin-top:14px;max-width:22ch">Tell us what you are looking for.</h1>
+      <p>One working day is our usual reply time. For anything urgent — a deadline, a shipment already on its way — WhatsApp is fastest.</p>
+    </div>
+  </section>
+
+  <section style="padding-bottom:min(8vw,90px)">
+    <div class="wrap cgrid">
+      <form id="cform" autocomplete="on">
+        <div class="field-row">
+          <div class="field"><label for="n">Your name</label><input id="n" name="name" type="text" placeholder="Nadia Rahman" required></div>
+          <div class="field"><label for="c">Country</label><select id="c" name="country"></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="e">Email</label><input id="e" name="email" type="email" placeholder="you@example.com"></div>
+          <div class="field"><label for="w">WhatsApp (optional)</label><input id="w" name="whatsapp" type="tel" placeholder="+60 12 345 6789"></div>
+        </div>
+        <div class="field">
+          <label for="k">What is this about?</label>
+          <select id="k">
+            <option>A retail order</option>
+            <option>A wholesale / bulk order</option>
+            <option>An interior or hotel project</option>
+            <option>A custom or made-to-order piece</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="m">Message</label>
+          <textarea id="m" rows="6" placeholder="Pieces you have in mind, quantities, and the city we would ship to." required></textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">
+          <button class="btn clay" type="submit">Send on WhatsApp</button>
+          <button class="btn ghost" type="button" id="emailBtn">Send by email</button>
+          <button class="btn ghost" type="button" id="copyBtn">Copy message</button>
+        </div>
+        <p style="margin-top:16px;font-size:12px;color:var(--muted)">We only use these details to answer your enquiry. No newsletter, no sharing.</p>
+      </form>
+
+      <aside class="cside">
+        <div class="cbox">
+          <p class="eyebrow">Fastest</p>
+          <h3 style="margin-top:10px">WhatsApp the studio</h3>
+          <p>English, seven days a week, usually within a few hours during business hours (GMT+8).</p>
+          <a class="line" id="waLink" href="#">Open WhatsApp →</a>
+        </div>
+        <div class="cbox">
+          <p class="eyebrow">Email</p>
+          <h3 style="margin-top:10px">For quotes &amp; invoices</h3>
+          <p>Best for wholesale lists, purchase orders and anything that needs a paper trail.</p>
+          <a class="line" id="mailLink" href="#">—</a>
+        </div>
+        <div class="cbox">
+          <p class="eyebrow">Studio</p>
+          <h3 style="margin-top:10px">Dispatch &amp; visits</h3>
+          <p id="studioNote">We dispatch Monday to Saturday. Studio visits by appointment only, since firing days are unpredictable.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var M = window.MARAYA, S = window.STORE;
+  M.$('#c').innerHTML = S.markets.map(function (m) { return '<option>' + M.esc(m) + '</option>'; }).join('');
+  M.$('#waLink').href = 'https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent('Hello ' + S.brand + ' — I have a question.');
+  M.$('#mailLink').textContent = S.email;
+  M.$('#mailLink').href = 'mailto:' + S.email;
+
+  function buildMsg() {
+    var v = function (id) { return (document.getElementById(id).value || '').trim(); };
+    var lines = ['Hello ' + S.brand + ' —', ''];
+    lines.push(v('m') || '(no message)');
+    lines.push('');
+    lines.push('—');
+    if (v('n')) lines.push('Name: ' + v('n'));
+    if (v('e')) lines.push('Email: ' + v('e'));
+    if (v('w')) lines.push('WhatsApp: ' + v('w'));
+    lines.push('Country: ' + v('c'));
+    lines.push('Regarding: ' + v('k'));
+    return lines.join('\n');
+  }
+
+  M.$('#cform').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (!document.getElementById('m').value.trim()) { M.toast('Please add a short message'); return; }
+    window.open('https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(buildMsg()), '_blank', 'noopener');
+  });
+  M.$('#emailBtn').addEventListener('click', function () {
+    if (!document.getElementById('m').value.trim()) { M.toast('Please add a short message'); return; }
+    location.href = 'mailto:' + S.email + '?subject=' + encodeURIComponent('Enquiry — ' + S.brand) + '&body=' + encodeURIComponent(buildMsg());
+  });
+  M.$('#copyBtn').addEventListener('click', function () {
+    var ta = document.createElement('textarea');
+    ta.value = buildMsg();
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); M.toast('Message copied'); } catch (err) { M.toast('Copy failed'); }
+    document.body.removeChild(ta);
+  });
+  M.reveals();
+});
+</script>
+</body>
+</html>

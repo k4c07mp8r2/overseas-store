@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>站点后台 — MARAYA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23191712'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='18' fill='%23FBF8F3' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+body{background:var(--paper-2)}
+.adm{max-width:1040px;margin:0 auto;padding:34px 22px 90px}
+.adm h1{font-size:30px;letter-spacing:-.02em}
+.adm .lead{color:var(--muted);font-size:14px;margin-top:10px;max-width:70ch;line-height:1.7}
+.panel{background:#fff;border:1px solid var(--line);padding:24px;margin-top:22px}
+.tabs{display:flex;gap:8px;margin-top:26px;flex-wrap:wrap}
+.tab{padding:9px 16px;border:1px solid var(--line-2);border-radius:99px;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.tab.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.pcard{border:1px solid var(--line);background:#fff;margin-bottom:14px}
+.pcard-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--paper)}
+.pcard-h .nm{font-family:var(--serif);font-size:16px}
+.pcard-h .sp{color:var(--muted);font-size:12px}
+.pcard-h .acts{margin-left:auto;display:flex;gap:6px}
+.mini{padding:6px 10px;border:1px solid var(--line-2);border-radius:2px;font-size:11.5px;color:var(--ink-soft);background:#fff}
+.mini:hover{border-color:var(--ink)}
+.mini.danger{color:#A5232B;border-color:#E4C3C3}
+.pcard-b{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pcard-b .full{grid-column:1/-1}
+.pcard-b label{display:block;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.pcard-b input,.pcard-b select,.pcard-b textarea{
+  width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:2px;background:#fff;font-size:13.5px;
+}
+.pcard-b textarea{min-height:70px;resize:vertical;line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.msgbar{position:sticky;bottom:0;z-index:20;margin-top:22px;padding:16px 20px;background:var(--ink);color:var(--paper);font-size:13px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.msgbar .sp{margin-left:auto;color:#B6AE9F;font-size:12px}
+.hintbox{border-left:2px solid var(--clay);padding:12px 16px;background:var(--paper);font-size:13px;line-height:1.7;color:var(--ink-soft);margin-top:18px}
+.hintbox b{color:var(--clay)}
+.pcard-b input.swatch{width:100%;height:40px;padding:3px;cursor:pointer;background:#fff}
+@media(max-width:700px){.pcard-b{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-page="">
+
+<div class="adm">
+  <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap">
+    <h1>站点后台</h1>
+    <a class="linkline" href="index.html" target="_blank">← 预览站点</a>
+    <a class="linkline" href="shop.html" target="_blank">商品列表</a>
+  </div>
+  <p class="lead">改商品、改品牌信息，然后点「下载 data.js」覆盖 <code>assets/data.js</code> 就生效。这里的修改先存在本机浏览器（草稿），不会直接改动线上内容。</p>
+
+  <!-- 登录 -->
+  <div class="panel" id="gate">
+    <h3 style="font-family:var(--serif);font-size:20px">请输入管理密码</h3>
+    <div class="field" style="max-width:280px;margin-top:16px">
+      <input id="pwd" type="password" placeholder="Password" autocomplete="current-password">
+    </div>
+    <button class="btn sm" id="loginBtn" type="button">进入后台</button>
+    <p id="gateMsg" style="margin-top:12px;font-size:13px;color:#A5232B;min-height:18px"></p>
+  </div>
+
+  <!-- 主界面 -->
+  <div id="app" style="display:none">
+    <div class="tabs">
+      <button class="tab on" data-tab="products">商品</button>
+      <button class="tab" data-tab="site">品牌与联系</button>
+      <button class="tab" data-tab="help">怎么用</button>
+    </div>
+
+    <div id="tab-products">
+      <div id="plist" style="margin-top:20px"></div>
+      <div class="bar">
+        <button class="btn sm ghost" id="addBtn" type="button">＋ 添加商品</button>
+        <button class="btn sm ghost" id="resetBtn" type="button">恢复为文件里的内容</button>
+      </div>
+    </div>
+
+    <div id="tab-site" style="display:none">
+      <div class="panel">
+        <div class="pcard-b" style="padding:0">
+          <div><label>品牌名</label><input id="s-brand"></div>
+          <div><label>一句话定位</label><input id="s-tagline"></div>
+          <div><label>WhatsApp 号码（国家码+号码，无 + 无空格）</label><input id="s-wa"></div>
+          <div><label>邮箱</label><input id="s-email"></div>
+          <div><label>Instagram（不带 @）</label><input id="s-ig"></div>
+          <div><label>发货说明（页脚显示）</label><input id="s-lead"></div>
+          <div class="full"><label>物流说明</label><input id="s-ship"></div>
+          <div class="full"><label>默认币种</label><input id="s-cur"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-help" style="display:none">
+      <div class="panel">
+        <h3 style="font-family:var(--serif);font-size:20px">三步上线</h3>
+        <div class="hintbox">
+          <b>1.</b> 在这个后台改商品和品牌信息，改完点「下载 data.js」。<br>
+          <b>2.</b> 用下载到的 <code>data.js</code> 覆盖项目里的 <code>assets/data.js</code>（文件名保持 data.js）。<br>
+          <b>3.</b> 刷新站点即可看到变化；发布到线上后，所有访客都会看到新内容。
+        </div>
+        <h3 style="font-family:var(--serif);font-size:20px;margin-top:28px">商品图片</h3>
+        <div class="hintbox">
+          把图片放进 <code>assets/img/</code>，然后把「图片路径」填成 <code>assets/img/your-photo.jpg</code>。<br>
+          建议 1200×1500（4:5 竖图），单张控制在 300KB 以内。<br>
+          留空则显示带品牌首字母的色块占位，不会破版。
+        </div>
+        <h3 style="font-family:var(--serif);font-size:20px;margin-top:28px">询盘怎么收到</h3>
+        <div class="hintbox">
+          站上不收款、不存订单。客户点「发送询盘」后，浏览器会打开 WhatsApp（或邮件），把商品清单、数量、目的地拼好发给「品牌与联系」里填的号码。<br>
+          所以只要那个号码是对的，你就能直接收到询盘。改号码后记得也下载覆盖一次。
+        </div>
+      </div>
+    </div>
+
+    <div class="msgbar" id="bar">
+      <span id="status">草稿未保存</span>
+      <span class="sp" id="dirtyFlag"></span>
+      <button class="btn sm" id="downloadBtn" type="button" style="background:var(--paper);color:var(--ink);border-color:var(--paper)">下载 data.js</button>
+      <button class="btn sm ghost" id="saveDraft" type="button" style="color:var(--paper);border-color:#4a463d">保存草稿</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script>
+var PWD_HASH = 'f4715410732eebd5c91096eccbcfbe8387474e3b7667d73630191a8b23cad4d9';
+var $ = function (s) { return document.querySelector(s); };
+var state = null;
+var statusEl, dirty = false;
+
+function ror(x, n) { return (x >>> n) | (x << (32 - n)); }
+function sha256(str) {
+  function isPrime(n) { for (var x = 2; x * x <= n; x++) if (n % x === 0) return false; return true; }
+  var K = [], H = [], p = 2;
+  while (K.length < 64) { if (isPrime(p)) K.push((Math.pow(p, 1 / 3) * 4294967296) | 0); p++; }
+  p = 2;
+  while (H.length < 8) { if (isPrime(p)) H.push((Math.pow(p, 1 / 2) * 4294967296) | 0); p++; }
+  var bytes = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 128) bytes.push(c);
+    else if (c < 2048) { bytes.push(192 | (c >> 6), 128 | (c & 63)); }
+    else { bytes.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63)); }
+  }
+  var bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  var hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+  bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
+             (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
+  var w = new Array(64);
+  for (var off = 0; off < bytes.length; off += 64) {
+    for (var j = 0; j < 16; j++) {
+      w[j] = ((bytes[off + j * 4] << 24) | (bytes[off + j * 4 + 1] << 16) | (bytes[off + j * 4 + 2] << 8) | bytes[off + j * 4 + 3]) | 0;
+    }
+    for (j = 16; j < 64; j++) {
+      var s0 = (ror(w[j - 15], 7) ^ ror(w[j - 15], 18) ^ (w[j - 15] >>> 3)) | 0;
+      var s1 = (ror(w[j - 2], 17) ^ ror(w[j - 2], 19) ^ (w[j - 2] >>> 10)) | 0;
+      w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+    }
+    var a = H[0], b = H[1], cc = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (j = 0; j < 64; j++) {
+      var S1 = (ror(e, 6) ^ ror(e, 11) ^ ror(e, 25)) | 0;
+      var chv = ((e & f) ^ (~e & g)) | 0;
+      var t1 = (h + S1 + chv + K[j] + w[j]) | 0;
+      var S0 = (ror(a, 2) ^ ror(a, 13) ^ ror(a, 22)) | 0;
+      var mj = ((a & b) ^ (a & cc) ^ (b & cc)) | 0;
+      var t2 = (S0 + mj) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = cc; cc = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + cc) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  return H.map(function (x) { return ('00000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
+}
+
+function draftKey() { return 'maraya_draft_v1'; }
+function loadDraft() {
+  try { var raw = localStorage.getItem(draftKey()); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+function markDirty() {
+  dirty = true;
+  $('#status').textContent = '草稿已修改（未导出）';
+  $('#dirtyFlag').textContent = '记得点右侧「下载 data.js」并覆盖 assets/data.js';
+}
+function saveDraft() {
+  try { localStorage.setItem(draftKey(), JSON.stringify(state)); dirty = false; $('#status').textContent = '草稿已保存到本机浏览器'; $('#dirtyFlag').textContent = ''; } catch (e) { alert('保存失败：' + e.message); }
+}
+
+/* ---------- 商品渲染 ---------- */
+function renderList() {
+  var box = $('#plist');
+  box.innerHTML = '';
+  state.products.forEach(function (p, idx) {
+    var card = document.createElement('div');
+    card.className = 'pcard';
+    card.innerHTML =
+      '<div class="pcard-h">' +
+        '<span class="nm"></span><span class="sp"></span>' +
+        '<span class="acts">' +
+          '<button class="mini" data-act="up">↑</button>' +
+          '<button class="mini" data-act="down">↓</button>' +
+          '<button class="mini danger" data-act="del">删除</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="pcard-b">' +
+        '<div><label>商品名</label><input data-f="name"></div>' +
+        '<div><label>分类</label><input data-f="cat" list="cats"></div>' +
+        '<div><label>价格（USD，数字）</label><input data-f="price" type="number" step="0.01"></div>' +
+        '<div><label>库存文案</label><input data-f="stock" placeholder="In stock / 6 left"></div>' +
+        '<div><label>角标（可空）</label><input data-f="tag" placeholder="New / Limited"></div>' +
+        '<div><label>URL 标识（slug，英文）</label><input data-f="slug"></div>' +
+        '<div class="full"><label>图片路径（可空）</label><input data-f="image" placeholder="assets/img/photo.jpg"></div>' +
+        '<div class="full"><label>一句话卖点（卡片上用）</label><input data-f="blurb"></div>' +
+        '<div class="full"><label>详情描述</label><textarea data-f="desc"></textarea></div>' +
+        '<div class="full"><label>规格（每行一条，冒号分隔，如 Material: Oak）</label><textarea data-f="specs" placeholder="Material: Stoneware&#10;Height: 24 cm"></textarea></div>' +
+        '<div><label>占位色 A</label><input class="swatch" data-f="tint0" type="color"></div>' +
+        '<div><label>占位色 B</label><input class="swatch" data-f="tint1" type="color"></div>' +
+      '</div>';
+
+    card.querySelector('.nm').textContent = p.name || '（未命名）';
+    card.querySelector('.sp').textContent = p.cat || '';
+
+    card.querySelectorAll('[data-f]').forEach(function (inp) {
+      var f = inp.getAttribute('data-f');
+      if (f === 'specs') inp.value = (p.specs || []).map(function (s) { return s[0] + ': ' + s[1]; }).join('\n');
+      else if (f === 'tint0') inp.value = (p.tint || ['#D8CDBD', '#8A7157'])[0];
+      else if (f === 'tint1') inp.value = (p.tint || ['#D8CDBD', '#8A7157'])[1];
+      else inp.value = p[f] == null ? '' : p[f];
+
+      inp.addEventListener('input', function () {
+        var v = inp.value;
+        if (f === 'price') v = parseFloat(v) || 0;
+        else if (f === 'specs') {
+          v = v.split('\n').map(function (line) { return line.trim(); }).filter(Boolean).map(function (line) {
+            var i = line.indexOf(':');
+            return i < 0 ? [line, ''] : [line.slice(0, i).trim(), line.slice(i + 1).trim()];
+          });
+        }
+        else if (f === 'tint0') { p.tint = p.tint || []; p.tint[0] = v; markDirty(); card.querySelector('.nm').textContent = p.name; return; }
+        else if (f === 'tint1') { p.tint = p.tint || []; p.tint[1] = v; markDirty(); return; }
+        p[f] = v;
+        if (f === 'name') card.querySelector('.nm').textContent = v || '（未命名）';
+        if (f === 'cat') card.querySelector('.sp').textContent = v;
+        markDirty();
+      });
+    });
+
+    card.querySelector('[data-act="up"]').onclick = function () {
+      if (idx === 0) return;
+      state.products.splice(idx - 1, 0, state.products.splice(idx, 1)[0]);
+      renderList(); markDirty();
+    };
+    card.querySelector('[data-act="down"]').onclick = function () {
+      if (idx === state.products.length - 1) return;
+      state.products.splice(idx + 1, 0, state.products.splice(idx, 1)[0]);
+      renderList(); markDirty();
+    };
+    card.querySelector('[data-act="del"]').onclick = function () {
+      if (!confirm('删除「' + (p.name || '未命名') + '」？')) return;
+      state.products.splice(idx, 1);
+      renderList(); markDirty();
+    };
+    box.appendChild(card);
+  });
+}
+
+/* ---------- 站点信息 ---------- */
+function bindSite() {
+  var map = {
+    's-brand': ['brand'], 's-tagline': ['tagline'], 's-wa': ['whatsapp'],
+    's-email': ['email'], 's-ig': ['instagram'], 's-lead': ['leadTime'],
+    's-ship': ['shippingNote'], 's-cur': ['currency']
+  };
+  Object.keys(map).forEach(function (id) {
+    var el = $('#' + id), k = map[id][0];
+    el.value = state[k] || '';
+    el.addEventListener('input', function () { state[k] = el.value; markDirty(); });
+  });
+}
+
+/* ---------- 导出 ---------- */
+function exportFile() {
+  var header = '/* 由后台生成 — 覆盖 assets/data.js 后生效 */\n';
+  var body = 'window.STORE = ' + JSON.stringify(state, null, 2) + ';\n';
+  var blob = new Blob([header + body], { type: 'text/javascript;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data.js';
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  $('#status').textContent = '已导出 data.js';
+  $('#dirtyFlag').textContent = '用它覆盖项目里的 assets/data.js';
+}
+
+/* ---------- 启动 ---------- */
+document.getElementById('loginBtn').onclick = function () {
+  var v = document.getElementById('pwd').value;
+  if (sha256(v) !== PWD_HASH) { document.getElementById('gateMsg').textContent = '密码不正确'; return; }
+  try { sessionStorage.setItem('maraya_admin_ok', '1'); } catch (e) {}
+  boot();
+};
+document.getElementById('pwd').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+
+function boot() {
+  $('#gate').style.display = 'none';
+  $('#app').style.display = 'block';
+  state = loadDraft() || JSON.parse(JSON.stringify(window.STORE));
+  statusEl = $('#status');
+  if (loadDraft()) { $('#status').textContent = '已载入本机草稿'; }
+  renderList();
+  bindSite();
+
+  var dl = document.createElement('datalist');
+  dl.id = 'cats';
+  var cats = [];
+  state.products.forEach(function (p) { if (p.cat && cats.indexOf(p.cat) < 0) cats.push(p.cat); });
+  dl.innerHTML = cats.map(function (c) { return '<option value="' + c + '">'; }).join('');
+  document.body.appendChild(dl);
+
+  $('#addBtn').onclick = function () {
+    state.products.push({
+      slug: 'new-piece-' + (state.products.length + 1), name: 'New piece', cat: 'Ceramics',
+      price: 0, tag: '', tint: ['#D8CDBD', '#8A7157'], image: '', blurb: '', desc: '',
+      specs: [['Material', '']], stock: 'In stock'
+    });
+    renderList(); markDirty();
+    window.scrollTo(0, document.body.scrollHeight);
+  };
+  $('#resetBtn').onclick = function () {
+    if (!confirm('放弃草稿，恢复为 data.js 里的内容？')) return;
+    try { localStorage.removeItem(draftKey()); } catch (e) {}
+    state = JSON.parse(JSON.stringify(window.STORE));
+    renderList(); bindSite();
+    $('#status').textContent = '已恢复为文件内容';
+  };
+  $('#downloadBtn').onclick = exportFile;
+  $('#saveDraft').onclick = saveDraft;
+
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.onclick = function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on');
+      var name = t.getAttribute('data-tab');
+      ['products', 'site', 'help'].forEach(function (n) {
+        document.getElementById('tab-' + n).style.display = n === name ? '' : 'none';
+      });
+    };
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+}
+
+try { if (sessionStorage.getItem('maraya_admin_ok') === '1') boot(); } catch (e) {}
+</script>
+</body>
+</html>
